@@ -45,7 +45,7 @@ class CreateSettingTable extends Migration
             $table->text('mail_encryption');
             $table->text('mail_from_address');
             $table->text('privacy_policy');
-            $table->string('website');
+            // $table->string('website');
             $table->text('license_code');
             $table->text('client_name');
             $table->boolean('license_verify');
