@@ -37,15 +37,14 @@ class UserApiController extends Controller
     public function apiLogin(Request $request)
     {
         $request->validate(
-            [
-                'email' => 'bail|required_if:provider,GOOGLE,LOCAL|email',
-                'password' => 'bail|required_if:provider,LOCAL|min:6',
-                'name' => 'bail|required_if:provider,GOOGLE,FACEBOOK',
-                'image' => 'bail|required_if:provider,GOOGLE,FACEBOOK',
-                'provider_token' => 'bail|required_if:provider:GOOGLE,FACEBOOK',
-                'provider' => 'bail|required',
-            ]
-        );
+        [
+            'email' => 'bail|required_if:provider,GOOGLE,LOCAL|email',
+            'password' => 'bail|required_if:provider,LOCAL|min:6',
+            'name' => 'bail|required_if:provider,GOOGLE,FACEBOOK',
+            'image' => 'bail|required_if:provider,GOOGLE,FACEBOOK',
+            'provider_token' => 'bail|required_if:provider:GOOGLE,FACEBOOK',
+            'provider' => 'bail|required',
+        ]);
         if ($request->provider == 'LOCAL') {
             $user = ([
                 'email' => $request->email,
@@ -93,7 +92,8 @@ class UserApiController extends Controller
                             }
                         }
                         if ($sms_verification == 1) {
-                            try {
+                            try
+                            {
                                 $p = $user->phone_code + $user->phone;
                                 $message1 = str_replace($data, $detail, $msg_content);
                                 $client = new Client($sid, $token);
@@ -113,7 +113,8 @@ class UserApiController extends Controller
             } else {
                 return response()->json(['success' => false, 'message' => 'Email and password wrong..!!'], 401);
             }
-        } else {
+        }
+        else {
             $data = $request->all();
             $data['role'] = 0;
             $data['is_verified'] = 1;
@@ -244,7 +245,8 @@ class UserApiController extends Controller
 
         $user = User::find($request->user_id);
         $admin_verify_user = Setting::find(1)->user_verification;
-        if ($admin_verify_user == 1) {
+        if ($admin_verify_user == 1)
+        {
             $otp = mt_rand(1000, 9999);
             $sms_verification = Setting::first()->sms_verification;
             $mail_verification = Setting::first()->mail_verification;
@@ -325,9 +327,13 @@ class UserApiController extends Controller
                 $user->password = Hash::make($password);
                 $user->save();
                 $message1 = str_replace($data, $detail, $mail_content);
-                try {
-                    Mail::to($user)->send(new ForgotPassword($message1));
-                } catch (\Throwable $th) {
+                try
+                {
+                Mail::to($user)->send(new ForgotPassword($message1));
+                }
+                catch (\Throwable $th)
+                {
+
                 }
                 return response(['success' => true, 'data' => $user, 'msg' => 'your password send into your email']);
             }
@@ -410,7 +416,7 @@ class UserApiController extends Controller
     {
         $single_worker = Coworkers::where([['id', $id], ['status', 1]])->first();
         $single_worker['skills'] = Service::where([['coworker_id', $id], ['status', 1]])->orderBy('id', 'DESC')->get();
-        $single_worker['images'] = CoworkerPortfolio::where('coworker_id', $id)->get(['image']);
+        $single_worker['images'] = CoworkerPortfolio::where('coworker_id',$id)->get(['image']);
         return response(['success' => true, 'data' => $single_worker]);
     }
 
@@ -601,7 +607,7 @@ class UserApiController extends Controller
         $appoint->appointment_id = '#' . rand(100000, 999999);
         $data = $request->all();
 
-        $duration = Service::whereIn('id', $data['service_id'])->sum('duration');
+        $duration = Service::whereIn('id',$data['service_id'])->sum('duration');
 
         $appoint->service_id = implode(',', $data['service_id']);
         $appoint->coworker_id = $data['coworker_id'];
@@ -623,17 +629,20 @@ class UserApiController extends Controller
         $appoint->date = $data['date'];
         $appoint->appointment_status = 'PENDING';
 
-        if (isset($data['address'])) {
+        if (isset($data['address']))
+        {
             $appoint->address = $data['address'];
             $appoint->lat = $data['lat'];
             $appoint->lang = $data['lang'];
         }
 
-        if (isset($data['payment_token'])) {
+        if(isset($data['payment_token']))
+        {
             $appoint->payment_token = $data['payment_token'];
         }
 
-        if (isset($data['coupen_id'])) {
+        if(isset($data['coupen_id']))
+        {
             $appoint->coupen_id = $data['coupen_id'];
             $appoint->discount = $data['discount'];
         }
@@ -658,7 +667,7 @@ class UserApiController extends Controller
             array_push($serviceName, $value->service_name);
         }
 
-        $approve_content = NotificationTemplate::where('title', 'user appointment book')->first();
+        $approve_content = NotificationTemplate::where('title','user appointment book')->first();
         $notification_content = $approve_content->notification_content;
         $user = auth()->user();
         $detail['customer_name'] = $user->name;
@@ -667,7 +676,8 @@ class UserApiController extends Controller
         $data = ["{customer_name}", "{appointment_id}", "{company_name}"];
 
         $message1 = str_replace($data, $detail, $notification_content);
-        if (Setting::find(1)->push_notification == 1) {
+        if (Setting::find(1)->push_notification == 1)
+        {
             try {
                 Config::set('onesignal.app_id', env('USER_APP_ID'));
                 Config::set('onesignal.rest_api_key', env('REST_API_KEY'));
@@ -681,7 +691,9 @@ class UserApiController extends Controller
                     $schedule = null,
                     Setting::find(1)->company_name
                 );
-            } catch (\Throwable $th) {
+            }
+            catch (\Throwable $th)
+            {
                 //throw $th;
             }
         }
@@ -699,9 +711,10 @@ class UserApiController extends Controller
         $Wdetail['appointment_id'] = $appointment->appointment_id;
         $Wdetail['date'] = $appointment->date;
         $Wdetail['start_time'] = $appointment->start_time;
-        $Wdata = ["{worker_name}", "{appointment_id}", "{date}", "{start_time}"];
+        $Wdata = ["{worker_name}", "{appointment_id}", "{date}","{start_time}"];
         $Wmessage1 = str_replace($Wdata, $Wdetail, $Wnotification_content);
-        try {
+        try
+        {
             Config::set('onesignal.app_id', env('COWORKER_APP_ID'));
             Config::set('onesignal.rest_api_key', env('COWORKER_REST_API_KEY'));
             Config::set('onesignal.user_auth_key', env('COWORKER_AUTH_KEY'));
@@ -714,7 +727,9 @@ class UserApiController extends Controller
                 $schedule = null,
                 Setting::find(1)->company_name
             );
-        } catch (\Throwable $th) {
+        }
+        catch (\Throwable $th)
+        {
             //throw $th;
         }
         $item = array();
@@ -724,9 +739,12 @@ class UserApiController extends Controller
         $item['message'] = $message1;
         $item['user_type'] = 'driver';
         Notification::create($item);
-        if ($appoint->payment_type == 'FLUTTERWAVE') {
-            return response(['success' => true, 'data' => 'appointment booked wait for confirmation', 'url' => url('flutterPayment/' . $appoint->id)]);
-        } else {
+        if ($appoint->payment_type == 'FLUTTERWAVE')
+        {
+            return response(['success' => true , 'data' => 'appointment booked wait for confirmation' , 'url' => url('flutterPayment/'.$appoint->id)]);
+        }
+        else
+        {
             return response(['success' => true, 'data' => 'appointment booked wait for confirmation']);
         }
     }
@@ -739,19 +757,20 @@ class UserApiController extends Controller
     }
 
     // Flutterwave Payment
-    public function apiTransction(Request $request, $appointment_id)
+    public function apiTransction(Request $request,$appointment_id)
     {
         $order = Appointment::find($appointment_id);
         $id = $request->input('transaction_id');
-        if ($request->input('status') == 'successful') {
+        if ($request->input('status') == 'successful')
+        {
             $msg = 'success';
             $order->payment_token = $id;
             $order->payment_status = 1;
             $order->save();
-            return view('flutterwave.transction', compact('msg'));
+            return view('flutterwave.transction',compact('msg'));
         } else {
             $msg = 'fail';
-            return view('flutterwave.transction', compact('msg'));
+            return view('flutterwave.transction',compact('msg'));
         }
     }
 
@@ -781,7 +800,7 @@ class UserApiController extends Controller
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $result = curl_exec($ch);
         $result = json_decode($result);
-        return view('paystack.confirmPayment', compact('result'));
+        return view('paystack.confirmPayment',compact('result'));
     }
 
     public function apiTransactionPaystack()
