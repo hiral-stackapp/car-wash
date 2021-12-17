@@ -94,7 +94,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function ()
     Route::get('/home', 'Admin\HomeController@index')->name('home');
 });
 
-Route::post('saveEnvData','AdminController@saveEnvData');
+Route::post('saveEnvData','Admin\AdminController@saveEnvData');
 
 // Employee
 Route::get('coworker/coworker_login','Employee\EmployeeController@employee_login');
